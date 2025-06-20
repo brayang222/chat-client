@@ -1,37 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import type { Message } from "../schemas/Chat";
+import type { BodyMessage, Message } from "../schemas/Chat";
 import { scrollToBottom } from "../utils/scrollToBottom";
 import io from "socket.io-client";
 const socket = io("http://localhost:3000");
 
 export const Chat = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hey there! How's it going?",
-      sender: "other",
-      timestamp: new Date(Date.now() - 300000),
-    },
-    {
-      id: "2",
-      text: "Hi! I'm doing great, thanks for asking. How about you?",
-      sender: "user",
-      timestamp: new Date(Date.now() - 240000),
-    },
-    {
-      id: "3",
-      text: "Pretty good! Just working on some projects. What are you up to today?",
-      sender: "other",
-      timestamp: new Date(Date.now() - 180000),
-    },
-    {
-      id: "4",
-      text: "Same here! Always something interesting to work on 😊",
-      sender: "user",
-      timestamp: new Date(Date.now() - 120000),
-    },
-  ]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   // const [sidebarOpen, setSidebarOpen] = useState(false);
   // const [currentChatId, setCurrentChatId] = useState("1");
@@ -39,21 +13,39 @@ export const Chat = () => {
 
   useEffect(() => {
     scrollToBottom(messagesEndRef);
+    console.log(`socket ID: ${socket.id}`);
   }, [messages]);
+
+  const receivedMessage = (message: Message) => {
+    setMessages((prev) => [...prev, message]);
+    console.log(message);
+  };
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      const message: Message = {
+      const bodyMessage: BodyMessage = {
         id: Date.now().toString(),
         text: newMessage,
-        sender: "user",
+        sender: socket.id as string,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, message]);
+      const message: Message = {
+        body: bodyMessage,
+        from: socket.id as string,
+      };
+      socket.emit("message", bodyMessage);
       setNewMessage("");
-      console.log(message);
+      setMessages([...messages, message]);
     }
   };
+
+  useEffect(() => {
+    socket.on("message", receivedMessage);
+
+    return () => {
+      socket.off("message", receivedMessage);
+    };
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -62,9 +54,9 @@ export const Chat = () => {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  // const formatTime = (date: Date) => {
+  //   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  // };
 
   // const handleChatSelect = (chatId: string) => {
   //   setCurrentChatId(chatId);
@@ -93,35 +85,37 @@ export const Chat = () => {
               {/* <User className="w-6 h-6" /> */}
             </div>
             <div>
-              <h1 className="text-xl font-semibold">Chat Interface</h1>
+              <h1 className="text-xl font-semibold">Chat </h1>
               <p className="text-blue-100 text-sm">Online now</p>
             </div>
           </div>
 
           <section className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-            {messages.map((message) => (
+            {messages.map((message, i) => (
               <div
-                key={message.id}
+                key={i}
                 className={`flex ${
-                  message.sender === "user" ? "justify-end" : "justify-start"
+                  message.from === socket.id ? "justify-end" : "justify-start"
                 } animate-fade-in`}
               >
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-                    message.sender === "user"
+                    message.from === socket.id
                       ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
                       : "bg-white text-gray-800 border border-gray-200"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <p className="text-sm leading-relaxed">
+                    {message.from} text: {message.body.text}
+                  </p>
                   <p
                     className={`text-xs mt-2 ${
-                      message.sender === "user"
+                      message.body === socket.id
                         ? "text-blue-100"
                         : "text-gray-500"
                     }`}
                   >
-                    {formatTime(message.timestamp)}
+                    {/* {formatTime(message.body.timestamp)} */}
                   </p>
                 </div>
               </div>

@@ -1,6 +1,11 @@
 export interface Message {
+  body: BodyMessage | any;
+  from: string;
+}
+
+export interface BodyMessage {
   id: string;
   text: string;
-  sender: "user" | "other";
+  sender: string;
   timestamp: Date;
 }
