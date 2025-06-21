@@ -1,15 +1,32 @@
 import { useState, useRef, useEffect } from "react";
 import type { BodyMessage, Message } from "../schemas/Chat";
 import { scrollToBottom } from "../utils/scrollToBottom";
+import { BACK_END_URL } from "../utils/constants";
+import { useParams } from "react-router-dom";
+import { getUserByUsername } from "../services/users/getUserByUsername";
 import io from "socket.io-client";
-const socket = io("http://localhost:3000");
+
+const socket = io(BACK_END_URL);
 
 export const Chat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   // const [sidebarOpen, setSidebarOpen] = useState(false);
   // const [currentChatId, setCurrentChatId] = useState("1");
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [user, setUser] = useState<any>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { userParams } = useParams();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userFectched = await getUserByUsername(userParams);
+      setUser(userFectched);
+      console.log(`User fetched: ${userFectched}`);
+    };
+    fetchUser();
+  }, [user]);
 
   useEffect(() => {
     scrollToBottom(messagesEndRef);
