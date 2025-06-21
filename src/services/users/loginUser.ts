@@ -5,7 +5,7 @@ export const loginUser = async (username: any) => {
   try {
     const options = {
       method: "POST",
-      url: `http://${BACK_END_URL}/users/login`,
+      url: `${BACK_END_URL}/users/login`,
       data: { username },
       headers: {
         accept: "application/json",

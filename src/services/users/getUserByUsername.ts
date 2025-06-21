@@ -5,7 +5,7 @@ export const getUserByUsername = async (username: any) => {
   try {
     const options = {
       method: "GET",
-      url: `http://${BACK_END_URL}/users/${username}`,
+      url: `${BACK_END_URL}/users/${username}`,
       headers: {
         accept: "application/json",
       },
