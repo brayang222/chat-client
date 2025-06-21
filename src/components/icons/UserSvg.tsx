@@ -1,7 +1,7 @@
-export const UserSvg = () => {
+export const UserSvg = ({ classNames }: { classNames: string }) => {
   return (
     <svg
-      className="w-4 h-4 text-blue-600"
+      className={classNames}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

@@ -5,6 +5,8 @@ import { BACK_END_URL } from "../utils/constants";
 import { useParams } from "react-router-dom";
 import { getUserByUsername } from "../services/users/getUserByUsername";
 import io from "socket.io-client";
+import { UserSvg } from "./icons/UserSvg";
+import { SendSvg } from "./icons/SendSvg";
 
 const socket = io(BACK_END_URL);
 
@@ -99,7 +101,7 @@ export const Chat = () => {
         <div className="flex-1 flex flex-col bg-white m-4 rounded-2xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              {/* <User className="w-6 h-6" /> */}
+              <UserSvg classNames="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-semibold">Chat </h1>
@@ -147,7 +149,7 @@ export const Chat = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
+                  placeholder="Escribe tú mensaje..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-gray-600"
                 />
               </div>
@@ -156,7 +158,7 @@ export const Chat = () => {
                 disabled={!newMessage.trim()}
                 className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {/* <Send className="w-5 h-5" /> */}
+                <SendSvg />
               </button>
             </div>
           </section>

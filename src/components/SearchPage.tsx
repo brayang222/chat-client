@@ -92,7 +92,7 @@ export const SearchPage = ({ username }: { username: string }) => {
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
                       >
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <UserSvg />
+                          <UserSvg classNames="w-4 h-4 text-blue-600" />
                         </div>
                         <span className="text-gray-800 font-medium">
                           {user}

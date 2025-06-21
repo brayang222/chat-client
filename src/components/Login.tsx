@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ChatSvg } from "./icons/ChatSvg";
+import { UserSvg } from "./icons/UserSvg";
 
 interface UsernameRegistrationProps {
   onUsernameSubmit: (username: string) => void;
@@ -24,7 +26,7 @@ const Login = ({ onUsernameSubmit }: UsernameRegistrationProps) => {
       <div className="w-full max-w-md h-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            {/* <MessageCircle className="w-8 h-8 text-blue-600" /> */}
+            <ChatSvg classNames="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Bienvenido a Chatea
@@ -44,16 +46,18 @@ const Login = ({ onUsernameSubmit }: UsernameRegistrationProps) => {
               onSubmit={handleSubmit}
               className="space-y-6 p-5 flex flex-col items-center "
             >
-              {/* <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
-              <input
-                type="text"
-                placeholder="Ingresa tu usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-10 flex w-full rounded-lg text-start h-12 text-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                maxLength={20}
-                required
-              />
+              <div className="w-full flex rounded-lg items-center border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <UserSvg classNames=" text-gray-400 w-6 h-6" />
+                <input
+                  type="text"
+                  placeholder="Ingresa tu usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="left-12 flex w-full text-start h-12 text-lg text-gray-400"
+                  maxLength={20}
+                  required
+                />
+              </div>
 
               <button
                 type="submit"
