@@ -9,7 +9,6 @@ export const Welcome = () => {
   const handleUsernameSubmit = async (submittedUsername: string) => {
     try {
       const loggedUser = await loginUser(submittedUsername);
-      console.log(loggedUser);
       setToken(JSON.stringify(loggedUser));
       navigate(`/chat/`);
     } catch (error) {

@@ -24,7 +24,6 @@ export const Chat = () => {
   useEffect(() => {
     getAllMessages()
       .then((msgs) => {
-        console.log("Mensajes recibidos:", msgs);
         setMessages(msgs);
       })
       .catch(console.error);
@@ -33,7 +32,6 @@ export const Chat = () => {
     if (token) {
       const parsed = JSON.parse(token);
       setUser(parsed.user);
-      console.log(parsed.user);
     } else {
       navigate("/");
     }

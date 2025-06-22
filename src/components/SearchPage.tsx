@@ -30,7 +30,6 @@ export const SearchPage = ({ username }: { username: string }) => {
 
     if (query.trim()) {
       setIsSearching(true);
-      console.log(users);
       const results = users
         .map((user) => user.username)
         .filter(
@@ -47,7 +46,6 @@ export const SearchPage = ({ username }: { username: string }) => {
   };
 
   const handleUserSelect = (selectedUser: string) => {
-    console.log("Navigating to chat with:", selectedUser);
     navigate(`/chat/${selectedUser}`);
   };
 
