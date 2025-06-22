@@ -1,70 +1,66 @@
 import { useState, useRef, useEffect } from "react";
-import type { BodyMessage, Message } from "../schemas/Chat";
+import type { Message } from "../schemas/Chat";
 import { scrollToBottom } from "../utils/scrollToBottom";
 import { BACK_END_URL } from "../utils/constants";
-import { useParams } from "react-router-dom";
-import { getUserByUsername } from "../services/users/getUserByUsername";
 import io from "socket.io-client";
-import { UserSvg } from "./icons/UserSvg";
 import { SendSvg } from "./icons/SendSvg";
+import { ChatSvg } from "./icons/ChatSvg";
+import { getToken } from "../store/token";
+import { getAllMessages } from "../services/messages/getAllMessages";
+import { formatRelativeDate } from "../utils/formatRelativeDate";
+import { createMessage } from "../services/messages/createMessage";
+import { useNavigate } from "react-router-dom";
 
 const socket = io(BACK_END_URL);
 
 export const Chat = () => {
-  // const [sidebarOpen, setSidebarOpen] = useState(false);
-  // const [currentChatId, setCurrentChatId] = useState("1");
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [user, setUser] = useState<any>([]);
+  const [user, setUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { userParams } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const userFectched = await getUserByUsername(userParams);
-      setUser(userFectched);
-      console.log(`User fetched: ${userFectched}`);
-    };
-    fetchUser();
-  }, [user]);
+    getAllMessages()
+      .then((msgs) => {
+        console.log("Mensajes recibidos:", msgs);
+        setMessages(msgs);
+      })
+      .catch(console.error);
+
+    const token = getToken();
+    if (token) {
+      const parsed = JSON.parse(token);
+      setUser(parsed.user);
+      console.log(parsed.user);
+    } else {
+      navigate("/");
+    }
+  }, []);
 
   useEffect(() => {
     scrollToBottom(messagesEndRef);
-    console.log(`socket ID: ${socket.id}`);
   }, [messages]);
 
   const receivedMessage = (message: Message) => {
     setMessages((prev) => [...prev, message]);
-    console.log(message);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim()) {
-      const bodyMessage: BodyMessage = {
-        id: Date.now().toString(),
-        text: newMessage,
-        sender: socket.id as string,
-        timestamp: new Date(),
-      };
       const message: Message = {
-        body: bodyMessage,
-        from: socket.id as string,
+        content: newMessage,
+        sender: { _id: user._id, username: user.username },
+        createdAt: new Date().toISOString(),
       };
-      socket.emit("message", bodyMessage);
+
+      socket.emit("message", message);
       setNewMessage("");
-      setMessages([...messages, message]);
+      await createMessage(message);
+      setMessages((prev) => [...prev, message]);
     }
   };
-
-  useEffect(() => {
-    socket.on("message", receivedMessage);
-
-    return () => {
-      socket.off("message", receivedMessage);
-    };
-  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -73,27 +69,15 @@ export const Chat = () => {
     }
   };
 
-  // const formatTime = (date: Date) => {
-  //   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  // };
-
-  // const handleChatSelect = (chatId: string) => {
-  //   setCurrentChatId(chatId);
-  //   // Here you would typically load messages for the selected chat
-  //   console.log("Selected chat:", chatId);
-  // };
+  useEffect(() => {
+    socket.on("message", receivedMessage);
+    return () => {
+      socket.off("message", receivedMessage);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex">
-      {/* Sidebar */}
-      {/* <ChatSidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        currentChatId={currentChatId}
-        onChatSelect={handleChatSelect}
-      /> */}
-
-      {/* Main Chat Area */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 
           `}
@@ -101,46 +85,76 @@ export const Chat = () => {
         <div className="flex-1 flex flex-col bg-white m-4 rounded-2xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <UserSvg classNames="w-6 h-6 text-white" />
+              <ChatSvg classNames="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold">Chat </h1>
-              <p className="text-blue-100 text-sm">Online now</p>
+              <h1 className="text-xl font-semibold">Chatea </h1>
+              <p className="text-blue-100 text-sm"></p>
             </div>
           </div>
 
-          <section className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
             {messages.map((message, i) => (
               <div
                 key={i}
                 className={`flex ${
-                  message.from === socket.id ? "justify-end" : "justify-start"
+                  message.sender._id === user._id
+                    ? "justify-end"
+                    : "justify-start"
                 } animate-fade-in`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-                    message.from === socket.id
-                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
-                      : "bg-white text-gray-800 border border-gray-200"
+                  className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${
+                    message.sender._id === user._id
+                      ? "flex-row-reverse space-x-reverse"
+                      : "flex-row"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">
-                    {message.from} text: {message.body.text}
-                  </p>
-                  <p
-                    className={`text-xs mt-2 ${
-                      message.body === socket.id
-                        ? "text-blue-100"
-                        : "text-gray-500"
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${
+                      message.sender._id === user._id
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-300 text-gray-700"
                     }`}
                   >
-                    {/* {formatTime(message.body.timestamp)} */}
-                  </p>
+                    {message.sender._id === user._id
+                      ? "Tú"
+                      : message.sender.username.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col">
+                    <div
+                      className={`px-4 py-3 rounded-2xl shadow-md relative ${
+                        message.sender._id === user._id
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md"
+                          : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
+                      }`}
+                    >
+                      <div
+                        className={`absolute bottom-0 w-3 h-3 ${
+                          message.sender._id === user._id
+                            ? "right-0 bg-blue-600 rounded-bl-full"
+                            : "left-0 bg-white border-l border-b border-gray-200 rounded-br-full"
+                        }`}
+                      />
+                      <p className="text-sm leading-relaxed relative z-10">
+                        {message.content}
+                      </p>
+                    </div>
+                    <p
+                      className={`text-xs mt-1 px-2 ${
+                        message.sender._id === user._id
+                          ? "text-right text-gray-500"
+                          : "text-left text-gray-500"
+                      }`}
+                    >
+                      {formatRelativeDate(message.createdAt as string)}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
-          </section>
+          </div>
 
           <section className="p-6 bg-white border-t border-gray-200">
             <div className="flex space-x-4 items-end">

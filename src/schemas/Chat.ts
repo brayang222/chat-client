@@ -1,11 +1,10 @@
-export interface Message {
-  body: BodyMessage | any;
-  from: string;
-}
+import type { User } from "./User";
 
-export interface BodyMessage {
-  id: string;
-  text: string;
-  sender: string;
-  timestamp: Date;
+export interface Message {
+  _id?: string;
+  sender: User;
+  content: string;
+  messageType?: string;
+  createdAt?: string;
+  __v?: number;
 }

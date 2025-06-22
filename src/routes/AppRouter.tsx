@@ -7,7 +7,7 @@ export const AppRouter = () => {
     <BrowserRouter basename="/">
       <Routes>
         <Route path="/" element={<Welcome />} />
-        <Route path="/chat/:user" element={<Chat />} />
+        <Route path="/chat/" element={<Chat />} />
       </Routes>
     </BrowserRouter>
   );
